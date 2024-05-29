@@ -8,11 +8,12 @@ const port = process.env.PORT || 5000;
 
 
 // middleware..
-const corsOptions = {
-  origin: ['http://localhost:5173', 'http://localhost:5174','***'],
-  credentials: true,
-  optionSuccessStatus: 200,
-}
+// const corsOptions = {
+//   origin: ['http://localhost:5173', 'http://localhost:5174','***'],
+//   credentials: true,
+//   optionSuccessStatus: 200,
+// }
+
 app.use(cors())
 app.use(express.json());
 
@@ -30,17 +31,34 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    
-    // Blog post..
+    //MongoDB database..
+    const database = client.db("AllBlog");
+    const blogCollection = database.collection("blog");
+
     
 
+    // Blog Add and get..
+    app.post('/addBlog', async(req, res)=>{
+        const blog = req.body;
+        console.log(blog);
+        const result = await blogCollection.insertOne(blog);
+        res.send(result)
+    })
 
+    // app.get('/addBlog', async(req,res)=>{
+
+    // })
+
+
+
+
+    // 
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
   } finally {
 
-    await client.close();
+    // await client.close();
   }
 }
 run().catch(console.dir);
