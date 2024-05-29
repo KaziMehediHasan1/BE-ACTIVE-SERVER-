@@ -45,9 +45,11 @@ async function run() {
         res.send(result)
     })
 
-    // app.get('/addBlog', async(req,res)=>{
-
-    // })
+    app.get('/addBlog', async(req,res)=>{
+        const cursor = blogCollection.find();
+        const result = await cursor.toArray();
+        res.send(result)
+    })
 
 
 
