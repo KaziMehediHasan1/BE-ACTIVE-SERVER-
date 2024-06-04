@@ -55,6 +55,18 @@ async function run() {
       res.send(result);
     });
 
+        // Comment Collection..
+    app.post('/addBlogs', async(req,res)=>{
+      const body = req.body;
+      const result = await commentsCollection.insertOne(body);
+      res.send(result)
+    })
+
+    app.get('/addBlogs',async(req,res)=>{
+      const body = req.body;
+      const result =await commentsCollection.findOne(body);
+      res.send(result)
+    })
 
     // Blogs updated...
     app.put("/addBlogs/:id", async (req, res) => {
@@ -103,12 +115,7 @@ async function run() {
       res.send(result);
     });
 
-    // Comment Collection..
-    // app.post('/', async(req,res)=>{
-    //   const comment = req.body;
-    //   const result = await commentsCollection.insertOne(comment);
-    //   res.send(result)
-    // })
+
 
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
