@@ -55,43 +55,30 @@ async function run() {
       res.send(result);
     });
 
-        // Comment Collection..
-    app.post('/addBlogs', async(req,res)=>{
-      const body = req.body;
-      const result = await commentsCollection.insertOne(body);
-      res.send(result)
-    })
-
-    app.get('/addBlogs',async(req,res)=>{
-      const body = req.body;
-      const result =await commentsCollection.findOne(body);
-      res.send(result)
-    })
-
-    // Blogs updated...
-    app.put("/addBlogs/:id", async (req, res) => {
-      const id = req.params.id;
-      const filter = { _id: new ObjectId(id) };
-      const option = { upsert: true };
-      const updateData = req.body;
-      console.log(updateData);
-      const updateUserData = {
-        $set: {
-          title: updateData.title,
-          category: updateData.category,
-          LDesc: updateData.longDescription,
-          SDesc: updateData.shortDescription,
-          PhotoUrl: updateData.photoURL,
-        },
-      };
-      const result = await blogCollection.updateOne(
-        filter,
-        updateUserData,
-        option
-      );
-      res.send(result);
-    });
-
+      // Blogs updated...
+      app.put("/addBlogs/:id", async (req, res) => {
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) };
+        const option = { upsert: true };
+        const updateData = req.body;
+        console.log(updateData);
+        const updateUserData = {
+          $set: {
+            title: updateData.title,
+            category: updateData.category,
+            LDesc: updateData.longDescription,
+            SDesc: updateData.shortDescription,
+            PhotoUrl: updateData.photoURL,
+          },
+        };
+        const result = await blogCollection.updateOne(
+          filter,
+          updateUserData,
+          option
+        );
+        res.send(result);
+      });  
+    
     // WishList Collection..
     app.post("/wishList", async (req, res) => {
       const wishListBlog = req.body;
@@ -116,7 +103,20 @@ async function run() {
     });
 
 
+        // Comment Collection..
+    app.post('/comment', async(req,res)=>{
+      const body = req.body;
+      const result = await commentsCollection.insertOne(body);
+      res.send(result)
+    })
 
+    app.get('/comment',async(req,res)=>{
+      const body = req.body;
+      const result =await commentsCollection.findOne(body);
+      res.send(result)
+    })
+
+  
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
