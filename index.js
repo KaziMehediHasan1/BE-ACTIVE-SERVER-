@@ -1,10 +1,10 @@
+const jwt = require('jsonwebtoken');
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 5000;
-
 // middleware..
 const corsOptions = {
   origin: ["http://localhost:5173", "http://localhost:5174", "***"],
@@ -56,19 +56,19 @@ async function run() {
     });
 
       // Blogs updated...
-      app.put("/addBlogs/:id", async (req, res) => {
+      app.patch("/addBlogs/:id", async (req, res) => {
         const id = req.params.id;
         const filter = { _id: new ObjectId(id) };
         const option = { upsert: true };
         const updateData = req.body;
-        console.log(updateData);
         const updateUserData = {
           $set: {
             title: updateData.title,
             category: updateData.category,
-            LDesc: updateData.longDescription,
-            SDesc: updateData.shortDescription,
-            PhotoUrl: updateData.photoURL,
+            // LDesc: updateData.longDescription,
+            // SDesc: updateData.shortDescription,
+            // PhotoUrl: updateData.photoURL,
+          // ...updateData
           },
         };
         const result = await blogCollection.updateOne(
@@ -111,12 +111,17 @@ async function run() {
     })
 
     app.get('/comment',async(req,res)=>{
-      const body = req.body;
-      const result =await commentsCollection.findOne(body);
+      const result =await commentsCollection.find().toArray();
       res.send(result)
     })
 
-  
+    // jwt token...
+    app.post('/jwt',async(req,res)=>{
+      const user = req.body;
+      const token = await jwt.sign(user,process.env.TOKEN_SECRET);
+      
+    })
+
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
