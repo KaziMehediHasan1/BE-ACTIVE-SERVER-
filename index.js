@@ -1,18 +1,25 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 5000;
 // middleware..
 const corsOptions = {
-  origin: ["http://localhost:5173", "http://localhost:5174", "***"],
+  origin: [
+    "https://assigenment-11-server-pearl.vercel.app",
+    "https://assignment-11-d1ae5.web.app",
+    "https://assignment-11-d1ae5.firebaseapp.com",
+  ],
   credentials: true,
   optionSuccessStatus: 200,
 };
+
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(cookieParser());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nfp7rpr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -43,6 +50,7 @@ async function run() {
 
     // Blog..
     app.get("/addBlog", async (req, res) => {
+      console.log("tok tok token pelam", req.cookies.token);
       const result = await blogCollection.find().toArray();
       res.send(result);
     });
@@ -55,30 +63,26 @@ async function run() {
       res.send(result);
     });
 
-      // Blogs updated...
-      app.patch("/addBlogs/:id", async (req, res) => {
-        const id = req.params.id;
-        const filter = { _id: new ObjectId(id) };
-        const option = { upsert: true };
-        const updateData = req.body;
-        const updateUserData = {
-          $set: {
-            title: updateData.title,
-            category: updateData.category,
-            // LDesc: updateData.longDescription,
-            // SDesc: updateData.shortDescription,
-            // PhotoUrl: updateData.photoURL,
-          // ...updateData
-          },
-        };
-        const result = await blogCollection.updateOne(
-          filter,
-          updateUserData,
-          option
-        );
-        res.send(result);
-      });  
-    
+    // Blogs updated...
+    app.patch("/addBlogs/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      console.log(filter);
+      const updateData = req.body;
+      console.log(updateData);
+      const updateUserData = {
+        $set: {
+          title: updateData.title,
+          category: updateData.category,
+          longDescription: updateData.longDescription,
+          shortDescription: updateData.shortDescription,
+          photoURL: updateData.photoURL,
+        },
+      };
+      const result = await blogCollection.updateOne(filter, updateUserData);
+      res.send(result);
+    });
+
     // WishList Collection..
     app.post("/wishList", async (req, res) => {
       const wishListBlog = req.body;
@@ -89,7 +93,7 @@ async function run() {
     app.get("/wishList", async (req, res) => {
       let query = {};
       if (req.query?.userMail) {
-        query = { "users.userMail": req.query.userMail };
+        query = { email: req.query.userMail };
       }
       const result = await wishListCollection.find(query).toArray();
       res.send(result);
@@ -102,25 +106,40 @@ async function run() {
       res.send(result);
     });
 
-
-        // Comment Collection..
-    app.post('/comment', async(req,res)=>{
+    // Comment Collection..
+    app.post("/comment", async (req, res) => {
       const body = req.body;
       const result = await commentsCollection.insertOne(body);
-      res.send(result)
-    })
+      res.send(result);
+    });
 
-    app.get('/comment',async(req,res)=>{
-      const result =await commentsCollection.find().toArray();
-      res.send(result)
-    })
+    app.get("/comment", async (req, res) => {
+      const result = await commentsCollection.find().toArray();
+      res.send(result);
+    });
 
     // jwt token...
-    app.post('/jwt',async(req,res)=>{
+    app.post("/jwt", async (req, res) => {
       const user = req.body;
-      const token = await jwt.sign(user,process.env.TOKEN_SECRET);
-      
-    })
+      console.log(user);
+      const token = await jwt.sign(user, process.env.TOKEN_SECRET, {
+        expiresIn: "2d",
+      });
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+        })
+        .send({ success: true });
+    });
+
+    // Logout jwt..
+    app.post("/logout", (req, res) => {
+      const user = req.body;
+      console.log("loggedIn out", user);
+      res.clearCookie("token", { maxAge: 0 }).send({ success: true });
+    });
 
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
