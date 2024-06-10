@@ -12,6 +12,8 @@ const corsOptions = {
     "https://assigenment-11-server-pearl.vercel.app",
     "https://assignment-11-d1ae5.web.app",
     "https://assignment-11-d1ae5.firebaseapp.com",
+    "http://localhost:5173",
+    "http://localhost:5174",
   ],
   credentials: true,
   optionSuccessStatus: 200,
@@ -40,6 +42,34 @@ async function run() {
     const wishListCollection = database.collection("wishList");
     const commentsCollection = database.collection("comment");
 
+    // jwt token...
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      console.log(user);
+      const token = await jwt.sign(user, process.env.TOKEN_SECRET, {
+        expiresIn: "2d",
+      });
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+        })
+        .send({ success: true });
+    });
+
+    // Logout jwt..
+    app.post("/logout", (req, res) => {
+      res
+        .clearCookie("token", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+          maxAge: 0,
+        })
+        .send({ success: true });
+    });
+
     // Blog Add and get..
     app.post("/addBlog", async (req, res) => {
       const blog = req.body;
@@ -50,12 +80,20 @@ async function run() {
 
     // Blog..
     app.get("/addBlog", async (req, res) => {
-      console.log("tok tok token pelam", req.cookies.token);
-      const result = await blogCollection.find().toArray();
+      const filter = req.query.filter;
+      // let titleName = {}
+      const title = req.query.title;
+      console.log(filter);
+      let query = {}
+      if(title) query.title= {'$regex' : title, '$options' : 'i'}
+      if(filter) query.category = filter
+      console.log(query);
+      const result = await blogCollection.find(query).toArray();
       res.send(result);
     });
 
-    // Blog Details
+
+    // Blog Details...
     app.get("/addBlogs/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -116,29 +154,6 @@ async function run() {
     app.get("/comment", async (req, res) => {
       const result = await commentsCollection.find().toArray();
       res.send(result);
-    });
-
-    // jwt token...
-    app.post("/jwt", async (req, res) => {
-      const user = req.body;
-      console.log(user);
-      const token = await jwt.sign(user, process.env.TOKEN_SECRET, {
-        expiresIn: "2d",
-      });
-      res
-        .cookie("token", token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-        })
-        .send({ success: true });
-    });
-
-    // Logout jwt..
-    app.post("/logout", (req, res) => {
-      const user = req.body;
-      console.log("loggedIn out", user);
-      res.clearCookie("token", { maxAge: 0 }).send({ success: true });
     });
 
     console.log(
